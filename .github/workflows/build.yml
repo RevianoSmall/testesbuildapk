@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # <-- Ini kunci utamanya, kita turunkan ke versi server yang stabil
 
     steps:
     - name: Ambil Kode
@@ -17,18 +17,23 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install Buildozer dan Dependensi
+    - name: Install Dependensi Ubuntu
       run: |
         sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-        pip install --upgrade buildozer cython==0.29.33 virtualenv
+        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
 
-    - name: Buat Buildozer Spec dan Build APK
+    - name: Install Buildozer
       run: |
-        yes | buildozer init
+        pip install --upgrade pip
+        pip install buildozer cython==0.29.33 virtualenv
+
+    - name: Build APK
+      run: |
+        # Cek jika file spec belum ada, maka buat baru. Mencegah error crash.
+        if [ ! -f "buildozer.spec" ]; then yes | buildozer init; fi
         buildozer -v android debug
 
-    - name: Upload APK ke GitHub
+    - name: Upload Hasil APK
       uses: actions/upload-artifact@v4
       with:
         name: Aplikasi-Bos
