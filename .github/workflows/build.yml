@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04 # <-- Ini kunci utamanya, kita turunkan ke versi server yang stabil
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Ambil Kode
@@ -27,10 +27,16 @@ jobs:
         pip install --upgrade pip
         pip install buildozer cython==0.29.33 virtualenv
 
-    - name: Build APK
+    - name: Bypass Lisensi dan Build APK
       run: |
-        # Cek jika file spec belum ada, maka buat baru. Mencegah error crash.
-        if [ ! -f "buildozer.spec" ]; then yes | buildozer init; fi
+        # Membuat file konfigurasi buildozer
+        yes | buildozer init
+        
+        # Memaksa server menyetujui lisensi Android secara otomatis
+        sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/g' buildozer.spec
+        sed -i 's/#android.accept_sdk_license = False/android.accept_sdk_license = True/g' buildozer.spec
+        
+        # Mulai proses pembuatan APK
         buildozer -v android debug
 
     - name: Upload Hasil APK
